@@ -20,10 +20,6 @@ class Login extends Component {
     history.replace('/')
   }
 
-  onFailureLogin = errorMsg => {
-    this.setState({username: '', password: '', showErrorMsg: true, errorMsg})
-  }
-
   onLoginForm = async event => {
     event.preventDefault()
     const apiUrl = 'https://apis.ccbp.in/login'
@@ -38,7 +34,12 @@ class Login extends Component {
     if (response.ok === true) {
       this.onSuccessLogin(data.jwt_token)
     } else {
-      this.onFailureLogin(data.error_msg)
+      this.setState({
+        username: '',
+        password: '',
+        showErrorMsg: true,
+        errorMsg: data.error_msg,
+      })
     }
   }
 

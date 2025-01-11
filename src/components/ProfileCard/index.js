@@ -15,28 +15,17 @@ class ProfileCard extends Component {
     this.getProfileDetails()
   }
 
-  getProfileDetails = async () => {
-    const apiUrl = 'https://apis.ccbp.in/profile'
-    this.setState({profileStatus: profileStatusConstants.loading})
-    const jwtToken = Cookies.get('jwt_token')
-    const options = {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-      },
-    }
-    const response = await fetch(apiUrl, options)
-    if (response.status === 200) {
-      const data = await response.json()
-      const updatedData = {
-        profileImageUrl: data.profile_details.profile_image_url,
-        name: data.profile_details.name,
-        shortBio: data.profile_details.short_bio,
-      }
-      this.onProfileSuccess(updatedData)
-    } else {
-      this.onProfileFailure()
-    }
+  renderProfile = () => {
+    const {profileDetails} = this.state
+    const {profileImageUrl, name, shortBio} = profileDetails
+
+    return (
+      <div className="profile-card">
+        <img src={profileImageUrl} alt="profile" className="profile-image" />
+        <h1 className="profile-name">{name}</h1>
+        <p className="profile-bio">{shortBio}</p>
+      </div>
+    )
   }
 
   onProfileSuccess = profileDetails => {
@@ -50,17 +39,28 @@ class ProfileCard extends Component {
     this.setState({profileStatus: profileStatusConstants.failure})
   }
 
-  renderProfile = () => {
-    const {profileDetails} = this.state
-    const {profileImageUrl, name, shortBio} = profileDetails
-
-    return (
-      <div className="profile-card">
-        <img src={profileImageUrl} alt="profile" className="profile-image" />
-        <h1 className="profile-name">{name}</h1>
-        <p className="profile-bio">{shortBio}</p>
-      </div>
-    )
+  getProfileDetails = async () => {
+    const profileApiUrl = 'https://apis.ccbp.in/profile'
+    this.setState({profileStatus: profileStatusConstants.loading})
+    const jwtToken = Cookies.get('jwt_token')
+    const options = {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${jwtToken}`,
+      },
+    }
+    const response = await fetch(profileApiUrl, options)
+    const data = await response.json()
+    if (response.ok === true) {
+      const updatedData = {
+        profileImageUrl: data.profile_details.profile_image_url,
+        name: data.profile_details.name,
+        shortBio: data.profile_details.short_bio,
+      }
+      this.onProfileSuccess(updatedData)
+    } else {
+      this.onProfileFailure()
+    }
   }
 
   render() {

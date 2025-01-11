@@ -55,6 +55,7 @@ class Jobs extends Component {
     searchQuery: '',
     jobsStatus: jobsStatusConstants.loading,
     jobsData: [],
+    jobsCount: 0,
   }
 
   componentDidMount() {
@@ -108,78 +109,89 @@ class Jobs extends Component {
     }
     const response = await fetch(jobsApiUrl, options)
     const data = await response.json()
-    if (response.status === 200) {
-      this.setState({jobsStatus: jobsStatusConstants.success, jobsData: data})
+    if (response.ok === true) {
+      this.setState({
+        jobsStatus: jobsStatusConstants.success,
+        jobsData: data.jobs,
+        jobsCount: data.total,
+      })
     } else {
       this.setState({jobsStatus: jobsStatusConstants.failure})
     }
   }
 
+  onRetryGetJobs = () => {
+    this.getJobs()
+  }
+
+  renderJobfailureView = () => (
+    <div className="jobs-failure-container">
+      <img
+        className="jobs-failure-image"
+        src="https://assets.ccbp.in/frontend/react-js/failure-img.png"
+        alt="failure view"
+      />
+      <h1 className="jobs-failure-heading">Oops! Something Went Wrong</h1>
+      <p className="jobs-failure-paragraph">
+        We cannot seem to find the page you are looking for.
+      </p>
+      <button
+        type="button"
+        onClick={this.onRetryGetJobs}
+        className="retry-button"
+      >
+        Retry
+      </button>
+    </div>
+  )
+
+  renderNoJobsView = () => (
+    <div className="no-jobs-contianer">
+      <img
+        alt="no jobs"
+        className="no-jobs-image"
+        src="https://assets.ccbp.in/frontend/react-js/no-jobs-img.png"
+      />
+      <h1 className="no-jobs-heading">No Jobs Found</h1>
+      <p className="no-jobs-paragraph">
+        We could not find any jobs. Try other filters.
+      </p>
+    </div>
+  )
+
   renderJobs = () => {
-    const {jobsStatus, jobsData} = this.state
-    const {jobs, total} = jobsData
+    const {jobsStatus, jobsData, jobsCount} = this.state
 
     switch (jobsStatus) {
       case jobsStatusConstants.success:
-        if (total === 0) {
+        if (jobsCount > 0) {
           return (
-            <div className='no-jobs-contianer'>
-              <img
-                className='no-jobs-image'
-                src='https://assets.ccbp.in/frontend/react-js/no-jobs-img.png'
-                alt='no jobs'
-              />
-              <h1 className='no-jobs-heading'>No Jobs Found</h1>
-              <p className='no-jobs-paragraph'>
-                We could not find any jobs. Try other filters.
-              </p>
-            </div>
+            <ul className="filters-list-container">
+              {jobsData.map(eachJob => {
+                const details = {
+                  companyLogoUrl: eachJob.company_logo_url,
+                  employmentType: eachJob.employment_type,
+                  id: eachJob.id,
+                  jobDescription: eachJob.job_description,
+                  location: eachJob.location,
+                  packagePerAnnum: eachJob.package_per_annum,
+                  rating: eachJob.rating,
+                  title: eachJob.title,
+                }
+                return <JobItem details={details} key={details.id} />
+              })}
+            </ul>
           )
         }
-        return (
-          <ul className='filters-list-container'>
-            {jobs.map(eachJob => {
-              const details = {
-                companyLogoUrl: eachJob.company_logo_url,
-                employmentType: eachJob.employment_type,
-                id: eachJob.id,
-                jobDescription: eachJob.job_description,
-                location: eachJob.location,
-                packagePerAnnum: eachJob.package_per_annum,
-                rating: eachJob.rating,
-                title: eachJob.title,
-              }
-              return <JobItem details={details} key={details.id} />
-            })}
-          </ul>
-        )
+        return this.renderNoJobsView()
       case jobsStatusConstants.loading:
         return (
-          <div className='jobs-container' data-testid='loader'>
-            <Loader type='ThreeDots' color='#ffffff' height='50' width='50' />
+          <div className="jobs-container" data-testid="loader">
+            <Loader type="ThreeDots" color="#ffffff" height="50" width="50" />
           </div>
         )
       case jobsStatusConstants.failure:
-        return (
-          <div className='jobs-failure-container'>
-            <img
-              className='jobs-failure-image'
-              src='https://assets.ccbp.in/frontend/react-js/failure-img.png'
-              alt='failure view'
-            />
-            <h1 className='jobs-failure-heading'>Oops! Something Went Wrong</h1>
-            <p className='jobs-failure-paragraph'>
-              We cannot seem to find the page you are looking for.
-            </p>
-            <button
-              type='button'
-              onClick={this.getJobs}
-              className='retry-button'
-            >
-              Retry
-            </button>
-          </div>
-        )
+        return this.renderJobfailureView()
       default:
         return null
     }
@@ -190,61 +202,61 @@ class Jobs extends Component {
     return (
       <>
         <Header />
-        <div className='jobs-page'>
-          <div className='jobs-filters-part'>
-            <div className='search-box-small'>
+        <div className="jobs-page">
+          <div className="jobs-filters-part">
+            <div className="search-box-small">
               <input
-                type='search'
-                className='search-bar'
-                placeholder='Search'
+                type="search"
+                className="search-bar"
+                placeholder="Search"
                 value={searchQuery}
                 onChange={this.onChaneSearchQuery}
               />
               <button
-                type='button'
-                className='search-button'
-                data-testid='searchButton'
+                type="button"
+                className="search-button"
+                data-testid="searchButton"
                 onClick={this.getJobs}
               >
-                <BsSearch className='search-icon' />
+                <BsSearch className="search-icon" />
               </button>
             </div>
             <ProfileCard />
-            <hr className='jobs-horizontal-line' />
-            <h1 className='filter-heading'>Type of Employment</h1>
-            <ul className='filters-list-container'>
+            <hr className="jobs-horizontal-line" />
+            <h1 className="filter-heading">Type of Employment</h1>
+            <ul className="filters-list-container">
               {employmentTypesList.map(eachType => (
-                <li className='filter-item' key={eachType.employmentTypeId}>
+                <li className="filter-item" key={eachType.employmentTypeId}>
                   <input
-                    type='checkbox'
+                    type="checkbox"
                     id={eachType.employmentTypeId}
                     onChange={this.onChangeEmploymentType}
-                    className='filter-input'
+                    className="filter-input"
                   />
                   <label
                     htmlFor={eachType.employmentTypeId}
-                    className='filter-label'
+                    className="filter-label"
                   >
                     {eachType.label}
                   </label>
                 </li>
               ))}
             </ul>
-            <hr className='jobs-horizontal-line' />
-            <h1 className='filter-heading'>Salary Range</h1>
-            <ul className='filters-list-container'>
+            <hr className="jobs-horizontal-line" />
+            <h1 className="filter-heading">Salary Range</h1>
+            <ul className="filters-list-container">
               {salaryRangesList.map(eachType => (
-                <li className='filter-item' key={eachType.salaryRangeId}>
+                <li className="filter-item" key={eachType.salaryRangeId}>
                   <input
-                    type='radio'
+                    type="radio"
                     id={eachType.salaryRangeId}
                     onChange={this.onChangeRadio}
-                    name='salaryRange'
-                    className='filter-input'
+                    name="salaryRange"
+                    className="filter-input"
                   />
                   <label
                     htmlFor={eachType.salaryRangeId}
-                    className='filter-label'
+                    className="filter-label"
                   >
                     {eachType.label}
                   </label>
@@ -252,22 +264,22 @@ class Jobs extends Component {
               ))}
             </ul>
           </div>
-          <div className='jobs-part'>
-            <div className='search-box-large'>
+          <div className="jobs-part">
+            <div className="search-box-large">
               <input
-                type='search'
-                className='search-bar'
-                placeholder='Search'
+                type="search"
+                className="search-bar"
+                placeholder="Search"
                 value={searchQuery}
                 onChange={this.onChaneSearchQuery}
-                data-testid='searchButton'
+                data-testid="searchButton"
               />
               <button
-                type='button'
-                className='search-button'
+                type="button"
+                className="search-button"
                 onClick={this.getJobs}
               >
-                <BsSearch className='search-icon' />
+                <BsSearch className="search-icon" />
               </button>
             </div>
             {this.renderJobs()}

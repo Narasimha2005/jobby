@@ -6,6 +6,7 @@ import {MdLocationOn} from 'react-icons/md'
 import {BsBriefcaseFill, BsBoxArrowUpRight} from 'react-icons/bs'
 import Header from '../Header'
 import SimilarJobs from '../SimilarJobs'
+
 import './index.css'
 
 const jobStatusConstants = {
@@ -27,7 +28,7 @@ class JobItemDetails extends Component {
     const {match} = this.props
     const {params} = match
     const {id} = params
-    const apiUrl = `https://apis.ccbp.in/jobs/${id}`
+    const jobsApiUrl = `https://apis.ccbp.in/jobs/${id}`
     this.setState({jobStatus: jobStatusConstants.loading})
     const jwtToken = Cookies.get('jwt_token')
     const options = {
@@ -36,9 +37,9 @@ class JobItemDetails extends Component {
         Authorization: `Bearer ${jwtToken}`,
       },
     }
-    const response = await fetch(apiUrl, options)
+    const response = await fetch(jobsApiUrl, options)
     const data = await response.json()
-    if (response.status === 200) {
+    if (response.ok === true) {
       const updatedData = {
         jobDetails: {
           companyLogoUrl: data.job_details.company_logo_url,
